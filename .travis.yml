@@ -3,10 +3,22 @@ services:
   - docker
 
 before_install:
-  - docker build -t petersen-rex/react-test -f ./client/Dockerfile.dev .
+  - docker build -t petersenrex/react-test -f ./client/Dockerfile.dev ./client
 
 script:
-  - docker run -e CI=true petersen-rex/docker-react npm run test
+  - docker run -e CI=true petersenrex/react-test npm run test
+
+after_success:
+  - docker build -t petersenrex/multi-client ./client
+  - docker build -t petersenrex/multi-nginx ./nginx
+  - docker build -t petersenrex/multi-server ./server
+  - docker build -t petersenrex/multi-worker ./worker
+  # docker hub login
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push petersenrex/multi-client
+  - docker push petersenrex/multi-nginx
+  - docker push petersenrex/multi-server
+  - docker push petersenrex/multi-worker  
 
 deploy:
   edge: true
